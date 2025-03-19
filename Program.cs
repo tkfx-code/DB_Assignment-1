@@ -52,6 +52,7 @@ namespace ConsoleApp6
 
                     //List all students
                     case 3:
+                        Console.WriteLine("Du har valt att lista alla nuvarande studenter.");
                         PrintStudents(dbContext);
                         break;
 
@@ -98,9 +99,10 @@ namespace ConsoleApp6
             string[] fullName = name.Split(' ');
             var fName = fullName[0];
             var lName = fullName[1];
+            bool found = false;
 
-            //Run loop to find student in DB 
-            foreach (var person in dbContext.Students)
+            //Run loop to find student in DB
+            foreach (var person in dbContext.Students.Where(x=>x.FirstName != null))
             {
                 //Find exact match to user input
                 if (person.FirstName.Contains(fName) && person.LastName.Contains(lName))
@@ -118,7 +120,7 @@ namespace ConsoleApp6
                         //Change student First name to user input
                         var fornamn = Console.ReadLine();
                         person.FirstName = fornamn;
-                        break;
+                        found = true;
                     }
                     if (changeChoice == 2)
                     {
@@ -126,7 +128,7 @@ namespace ConsoleApp6
                         //Change student Last name to user input
                         var efternamn = Console.ReadLine();
                         person.LastName = efternamn;
-                        break;
+                        found = true;
                     }
                     if (changeChoice == 3)
                     {
@@ -134,12 +136,16 @@ namespace ConsoleApp6
                         //Change student City to user input
                         var std = Console.ReadLine();
                         person.City = std;
-                        break;
+                        found = true;
                     }
-                    //!! ERROR HANDLING IF USER NOT FOUND, change loop type? 
-
+                    dbContext.SaveChanges();
                 }
-                dbContext.SaveChanges();
+                //If person not found write error message.
+                if (!found)
+                {
+                    Console.WriteLine("Studenten existerar inte. Vänligen försök igen");
+                    break;
+                }
                 //Clear array so we start with empty each time
                 Array.Clear(fullName);
                 //Empty line for esthetics
@@ -153,12 +159,12 @@ namespace ConsoleApp6
             string firstName = "Förnamn";
             string lastName = "Efternamn";
             string city = "Ort";
-            //ERROR HANDLING CHECK IF NULL?
+            //Print header
             Console.WriteLine($"{firstName.PadRight(10)}|{lastName.PadRight(10)}|{city.PadRight(10)}");
-            foreach (var item in dbContext.Students)
+            //Print student info, skip if null
+            foreach (var item in dbContext.Students.Where(x=>x.FirstName != null))
             {
                 Console.WriteLine($"{item.FirstName.PadRight(10)} {item.LastName.PadRight(10)} {item.City.PadRight(10)}");
-                Console.WriteLine("");
             }
             //Empty line for estethics
             Console.WriteLine();

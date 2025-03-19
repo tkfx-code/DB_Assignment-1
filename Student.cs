@@ -14,12 +14,5 @@ namespace ConsoleApp6
         public string LastName { get; set; } = "";
         public string City { get; set; } = "";
 
-        //Print Student info
-        public override string ToString()
-        {
-            return $"Förnamn: {FirstName}\n" +
-                $"Efternamn: {LastName}\n" +
-                $"Stad: {City}\n";
-        }
     }
 }
