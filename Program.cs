@@ -1,125 +1,61 @@
 ﻿using System.Security.Cryptography;
 
+/*
+ * Create a simple Student class with:
+ * int StudentID
+ * string FirstName
+ * string LastName
+ * string City
+ * 
+ * Use EF Core to connec to DB, and let the user choose:
+ * Register new student
+ * Change a student
+ * List all students
+ * 
+ * Try to keep your program organized and follow OOP
+ */
 namespace ConsoleApp6
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            //testdata
-            //var s1 = new Student() { FirstName = "Märta", LastName = "Dahlberg", City = "Stockholm" };
-            //var s2 = new Student() { FirstName = "Student", LastName = "Efternamn", City = "Y" };
+            //create database
+            var dbContext = new StudentDBContext();
+
+            //Create a list for easier LINQ
             var Students = new List<Student>();
 
-            var dbContext = new StudentDBContext();
-            //dbContext.Add(s1);
-            //dbContext.Add(s2);
-            //spara innan du försöker accessa
+            //Save database
             dbContext.SaveChanges();
 
             var run = true;
 
-            while (run) { 
-            //Lägg till menyval att ; registrera ny student, ändra existerande student, lista alla studenter
-            Console.WriteLine("MENY");
-            Console.WriteLine("1. Registerera ny student: ");
-            Console.WriteLine("2. Ändra information om existerande student");
-            Console.WriteLine("3. Lista alla nuvarande studenter");
-            Console.WriteLine("Tryck 0 för att avsluta programmet.");
-            int choice = Convert.ToInt32(Console.ReadLine());
+            while (run) {
+                //Show Menu
+                ShowMenu();
+                int choice = Convert.ToInt32(Console.ReadLine());
 
                 switch (choice)
                 {
-                    //Registrera ny student
+                    //Register new student
                     case 1:
-                        //Be User om input
-                        Console.WriteLine("Du har valt att registrera ny student.\n Vänligen ange studentens förnamn: ");
-                        var firstName = Console.ReadLine();
-                        Console.WriteLine("Ange studentens efternamn: ");
-                        var lastName = Console.ReadLine();
-                        Console.WriteLine("Ange vilken ort studenten bor på: ");
-                        var city = Console.ReadLine();
-
-                        //Skapa student från input och lägg till i databasen, spara
-                        var newStudent = new Student() { FirstName = firstName, LastName = lastName, City = city };
-                        dbContext.Add(newStudent);
-                        dbContext.SaveChanges();
-                        Console.WriteLine();
+                        Console.WriteLine("Du har valt att registrera en ny student.");
+                        AddStudent(dbContext);
                         break;
 
-                    //Ändra information om existerande student
+                    //Change information of existing student 
                     case 2:
                         Console.WriteLine("Du har valt att ändra information av en existerande student");
-                        Console.WriteLine("Ange studentens För- och Efternamn");
-                        string name = Console.ReadLine();
-                        string[] fullName = name.Split(' ');
-                        var fName = fullName[0];
-                        var lName = fullName[1];
-
-                        //Kör en for loop för att hitta studenten i listan 
-                        foreach (var person in dbContext.Students)
-                        {
-                            //Linq hitta vart name matchar för och efternamn (Letar inte efter dupliceringar)
-                            if (person.FirstName.Contains(fName) && person.LastName.Contains(lName))
-                            {
-                                //Fråga vad som ska ändras - för/efternamn/stad
-                                Console.WriteLine("Välj vilken information du vill ändra: ");
-                                Console.WriteLine("1. Studentens förnamn");
-                                Console.WriteLine("2. Studentens efternamn");
-                                Console.WriteLine("3. Studentens ort");
-                                int changeChoice = Convert.ToInt32(Console.ReadLine());
-                                //Sätt ny variabel på user input data
-                                if (changeChoice == 1)
-                                {
-                                    Console.WriteLine("Vad är studentens nya förnamn?");
-                                    //byt studentens förnamn till input
-                                    var fornamn = Console.ReadLine();
-                                    person.FirstName = fornamn;
-                                    break;
-                                }
-                                if (changeChoice == 2)
-                                {
-                                    Console.WriteLine("Vad är studentens nya efternamn?");
-                                    //byt studentens efternamn till input
-                                    var efternamn = Console.ReadLine();
-                                    person.LastName = efternamn;
-                                    break;
-                                }
-                                if (changeChoice == 3)
-                                {
-                                    Console.WriteLine("Vilken stad bor studenten i");
-                                    //byt den students stad till input
-                                    var std = Console.ReadLine();
-                                    person.City = std;
-                                    break;
-                                }
-                                //!! Byta till for loop? Eller lägga till en mening "om inget matchar"?
-                            }
-                        }
-                        dbContext.SaveChanges();
-                        //Clear array 
-                        Array.Clear(fullName);
-                        Console.WriteLine();
+                        ChangeStudent(dbContext);
                         break;
 
-                    //Lista alla studenter
+                    //List all students
                     case 3:
-                        //for loop som skrivver en rad för varje student, med en header av för/efter/stadsnamn
-                        //Hämta data från fil
-                        Console.WriteLine("Här är alla listade studenter: ");
-                        string f = "Förnamn";
-                        string l = "Efternamn";
-                        string o = "Ort";
-                        Console.WriteLine($"{f.PadRight(10)}|{l.PadRight(10)}|{o.PadRight(10)}");
-                        foreach (var item in dbContext.Students)
-                        {
-                            Console.WriteLine($"{item.FirstName.PadRight(10)} {item.LastName.PadRight(10)} {item.City.PadRight(10)}");
-                            Console.WriteLine("");
-                        }
-                        Console.WriteLine();
+                        PrintStudents(dbContext);
                         break;
 
-                    //Avsluta programmet
+                    //End program
                     default:
                         Console.WriteLine("Du har valt att avsluta programmet");
                         Console.WriteLine();
@@ -128,6 +64,104 @@ namespace ConsoleApp6
                 }
             }
             Environment.Exit(0);
+        }
+        public static void ShowMenu()
+        {
+            Console.WriteLine("MENY");
+            Console.WriteLine("1. Registerera ny student: ");
+            Console.WriteLine("2. Ändra information om existerande student");
+            Console.WriteLine("3. Lista alla nuvarande studenter");
+            Console.WriteLine("Tryck 0 för att avsluta programmet.");
+        }
+        public static void AddStudent(StudentDBContext dbContext)
+        {
+            //Student user input
+            Console.WriteLine("Vänligen ange studentens förnamn: ");
+            var firstName = Console.ReadLine();
+            Console.WriteLine("Ange studentens efternamn: ");
+            var lastName = Console.ReadLine();
+            Console.WriteLine("Ange vilken ort studenten bor på: ");
+            var city = Console.ReadLine();
+
+            //Create student from input and add to DB 
+            var newStudent = new Student() { FirstName = firstName, LastName = lastName, City = city };
+            dbContext.Add(newStudent);
+            dbContext.SaveChanges();
+            //Empty line for esthetics
+            Console.WriteLine();
+        }
+        public static void ChangeStudent(StudentDBContext dbContext)
+        {
+            Console.WriteLine("Ange studentens För- och Efternamn");
+            string name = Console.ReadLine();
+            //Create array to read user input first and last name
+            string[] fullName = name.Split(' ');
+            var fName = fullName[0];
+            var lName = fullName[1];
+
+            //Run loop to find student in DB 
+            foreach (var person in dbContext.Students)
+            {
+                //Find exact match to user input
+                if (person.FirstName.Contains(fName) && person.LastName.Contains(lName))
+                {
+                    //Ask what user wants to change
+                    Console.WriteLine("Välj vilken information du vill ändra: ");
+                    Console.WriteLine("1. Studentens förnamn");
+                    Console.WriteLine("2. Studentens efternamn");
+                    Console.WriteLine("3. Studentens ort");
+                    int changeChoice = Convert.ToInt32(Console.ReadLine());
+
+                    if (changeChoice == 1)
+                    {
+                        Console.WriteLine("Vad är studentens nya förnamn?");
+                        //Change student First name to user input
+                        var fornamn = Console.ReadLine();
+                        person.FirstName = fornamn;
+                        break;
+                    }
+                    if (changeChoice == 2)
+                    {
+                        Console.WriteLine("Vad är studentens nya efternamn?");
+                        //Change student Last name to user input
+                        var efternamn = Console.ReadLine();
+                        person.LastName = efternamn;
+                        break;
+                    }
+                    if (changeChoice == 3)
+                    {
+                        Console.WriteLine("Vilken stad bor studenten i");
+                        //Change student City to user input
+                        var std = Console.ReadLine();
+                        person.City = std;
+                        break;
+                    }
+                    //!! ERROR HANDLING IF USER NOT FOUND, change loop type? 
+
+                }
+                dbContext.SaveChanges();
+                //Clear array so we start with empty each time
+                Array.Clear(fullName);
+                //Empty line for esthetics
+                Console.WriteLine();
+            }
+        }
+        public static void PrintStudents(StudentDBContext dbContext)
+        {
+            //for loop lists one student per row 
+            Console.WriteLine("Här är alla listade studenter: ");
+            string firstName = "Förnamn";
+            string lastName = "Efternamn";
+            string city = "Ort";
+            //ERROR HANDLING CHECK IF NULL?
+            Console.WriteLine($"{firstName.PadRight(10)}|{lastName.PadRight(10)}|{city.PadRight(10)}");
+            foreach (var item in dbContext.Students)
+            {
+                Console.WriteLine($"{item.FirstName.PadRight(10)} {item.LastName.PadRight(10)} {item.City.PadRight(10)}");
+                Console.WriteLine("");
+            }
+            //Empty line for estethics
+            Console.WriteLine();
         }
     }
 }
