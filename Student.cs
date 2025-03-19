@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace ConsoleApp6
 {
-    //Dubbelkolla paruppgift Customer.cs
     internal class Student
     {
         public int StudentID { get; set; }
