@@ -23,9 +23,6 @@ namespace ConsoleApp6
             //create database
             var dbContext = new StudentDBContext();
 
-            //Create a list for easier LINQ
-            var Students = new List<Student>();
-
             //Save database
             dbContext.SaveChanges();
 
@@ -101,55 +98,54 @@ namespace ConsoleApp6
             var lName = fullName[1];
             bool found = false;
 
-            //Run loop to find student in DB
-            foreach (var person in dbContext.Students.Where(x=>x.FirstName != null))
+            var person = dbContext.Students.FirstOrDefault(x => x.FirstName.Contains(fName) && x.LastName.Contains(lName));
+            if (person == null)
             {
-                //Find exact match to user input
-                if (person.FirstName.Contains(fName) && person.LastName.Contains(lName))
-                {
-                    //Ask what user wants to change
-                    Console.WriteLine("Välj vilken information du vill ändra: ");
-                    Console.WriteLine("1. Studentens förnamn");
-                    Console.WriteLine("2. Studentens efternamn");
-                    Console.WriteLine("3. Studentens ort");
-                    int changeChoice = Convert.ToInt32(Console.ReadLine());
+                // not found
+                Console.WriteLine("Studenten existerar inte. Vänligen försök igen");
+            }
+            else
+            {
+                // found
+                //Ask what user wants to change
+                Console.WriteLine("Välj vilken information du vill ändra: ");
+                Console.WriteLine("1. Studentens förnamn");
+                Console.WriteLine("2. Studentens efternamn");
+                Console.WriteLine("3. Studentens ort");
+                int changeChoice = Convert.ToInt32(Console.ReadLine());
 
-                    if (changeChoice == 1)
-                    {
-                        Console.WriteLine("Vad är studentens nya förnamn?");
-                        //Change student First name to user input
-                        var fornamn = Console.ReadLine();
-                        person.FirstName = fornamn;
-                        found = true;
-                    }
-                    if (changeChoice == 2)
-                    {
-                        Console.WriteLine("Vad är studentens nya efternamn?");
-                        //Change student Last name to user input
-                        var efternamn = Console.ReadLine();
-                        person.LastName = efternamn;
-                        found = true;
-                    }
-                    if (changeChoice == 3)
-                    {
-                        Console.WriteLine("Vilken stad bor studenten i");
-                        //Change student City to user input
-                        var std = Console.ReadLine();
-                        person.City = std;
-                        found = true;
-                    }
-                    dbContext.SaveChanges();
-                }
-                //If person not found write error message.
-                if (!found)
+                if (changeChoice == 1)
                 {
-                    Console.WriteLine("Studenten existerar inte. Vänligen försök igen");
-                    break;
+                    Console.WriteLine("Vad är studentens nya förnamn?");
+                    //Change student First name to user input
+                    var fornamn = Console.ReadLine();
+                    person.FirstName = fornamn;
+                    found = true;
                 }
-                //Clear array so we start with empty each time
-                Array.Clear(fullName);
-                //Empty line for esthetics
-                Console.WriteLine();
+                if (changeChoice == 2)
+                {
+                    Console.WriteLine("Vad är studentens nya efternamn?");
+                    //Change student Last name to user input
+                    var efternamn = Console.ReadLine();
+                    person.LastName = efternamn;
+                    found = true;
+                }
+                if (changeChoice == 3)
+                {
+                    Console.WriteLine("Vilken stad bor studenten i");
+                    //Change student City to user input
+                    var std = Console.ReadLine();
+                    person.City = std;
+                    found = true;
+                }
+                dbContext.SaveChanges();
+            }
+
+            //Empty line for esthetics
+            Console.WriteLine();
+
+
+
             }
         }
         public static void PrintStudents(StudentDBContext dbContext)
